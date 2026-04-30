@@ -45,6 +45,20 @@ export class CategoryService {
     this.save(filtered);
   }
 
+  updateCategory(id: string, name: string): void {
+  const cleanName = name.trim();
+
+  if (!cleanName) return;
+
+  const updated = this.categoriesSubject.value.map(category =>
+    category.id === id
+      ? { ...category, name: cleanName }
+      : category
+  );
+
+  this.save(updated);
+}
+
   private getRandomColor(): string {
     const colors = [
       'primary',

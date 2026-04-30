@@ -40,7 +40,7 @@
     <ion-card-content>
       <ion-item>
         <ion-input #catInput placeholder="Nueva categoría"></ion-input>
-        <ion-button (click)="addCategoryFromInput(catInput)"> </ion-button>
+        <ion-button (click)="addCategoryFromInput(catInput)"> <ion-icon name="add-outline"></ion-icon> </ion-button>
       </ion-item>
 
       @if (categories$ | async; as categories) {
@@ -50,9 +50,29 @@
         </ion-button>
 
         @for (cat of categories; track cat.id) {
-        <ion-button size="small" [color]="cat.color" (click)="selectCategory(cat.id)">
-          {{ cat.name }}
-        </ion-button>
+        <ion-chip [color]="cat.color">
+          <ion-label (click)="selectCategory(cat.id)">
+            {{ cat.name }}
+          </ion-label>
+
+          <ion-button fill="clear" size="small" (click)="startEditCategory(cat.id, cat.name)">
+            Editar
+          </ion-button>
+
+          <ion-button fill="clear" size="small" color="danger" (click)="deleteCategory(cat.id)">
+            Eliminar
+          </ion-button>
+        </ion-chip>
+        }
+        @if (editingCategoryId) {
+        <ion-item>
+          <ion-input [(ngModel)]="editingCategoryName" placeholder="Editar categoría">
+          </ion-input>
+
+          <ion-button slot="end" (click)="saveEditCategory()">
+            Guardar
+          </ion-button>
+        </ion-item>
         }
       </div>
       }
@@ -68,7 +88,8 @@
 
   @if (tasks.length > 0) {
   <ion-list>
-    @for (task of getFilteredTasks(tasks); track task.id) { <ion-item>
+    @for (task of getFilteredTasks(tasks); track task.id) { 
+      <ion-item>
       <ion-checkbox slot="start" [checked]="task.completed" (ionChange)="toggleTask(task.id)">
       </ion-checkbox>
 
