@@ -19,7 +19,7 @@ import {
   IonSelect,
   IonSelectOption,
   IonChip,
-  IonButtons  
+  IonButtons,
 } from '@ionic/angular/standalone';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { trashOutline, addOutline } from 'ionicons/icons';
@@ -57,7 +57,7 @@ import { CategoryService } from '../core/services/category.service';
     IonSelect,
     IonSelectOption,
     IonChip,
-    IonButtons
+    IonButtons,
   ],
 })
 export class HomePage {
@@ -151,6 +151,7 @@ export class HomePage {
 
   deleteCategory(categoryId: string): void {
     this.categoryService.deleteCategory(categoryId);
+    this.taskService.removeCategoryFromTasks(categoryId);
 
     if (this.selectedCategoryId === categoryId) {
       this.selectedCategoryId = null;
