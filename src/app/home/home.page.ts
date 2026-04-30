@@ -15,7 +15,9 @@ import {
   IonIcon,
   IonCard,
   IonCardContent,
-  IonBadge
+  IonBadge,
+  IonSelect,
+  IonSelectOption,
 } from '@ionic/angular/standalone';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { trashOutline, addOutline } from 'ionicons/icons';
@@ -23,6 +25,7 @@ import { addIcons } from 'ionicons';
 
 import { TaskService } from '../core/services/task.service';
 import { Task } from '../shared/models/task.model';
+import { CategoryService } from '../core/services/category.service';
 
 @Component({
   selector: 'app-home',
@@ -48,24 +51,33 @@ import { Task } from '../shared/models/task.model';
     IonIcon,
     IonCard,
     IonCardContent,
-    IonBadge
-  ]
+    IonBadge,
+    IonSelect,
+    IonSelectOption,
+  ],
 })
 export class HomePage {
   newTaskTitle = '';
   tasks$ = this.taskService.tasks$;
+  categories$ = this.categoryService.categories$;
+  selectedCategoryId: string | null = null;
+  selectedNewTaskCategoryId: string | undefined;
 
-  constructor(private taskService: TaskService) {
+  constructor(
+    private taskService: TaskService,
+    private categoryService: CategoryService,
+  ) {
     addIcons({ trashOutline, addOutline });
   }
 
   getCompletedCount(tasks: Task[]): number {
-    return tasks.filter(task => task.completed).length;
+    return tasks.filter((task) => task.completed).length;
   }
 
   addTask(): void {
-    this.taskService.addTask(this.newTaskTitle);
+    this.taskService.addTask(this.newTaskTitle, this.selectedNewTaskCategoryId);
     this.newTaskTitle = '';
+    this.selectedNewTaskCategoryId = undefined;
   }
 
   toggleTask(taskId: string): void {
@@ -78,5 +90,39 @@ export class HomePage {
 
   trackByTaskId(index: number, task: Task): string {
     return task.id;
+  }
+
+  addCategory(name: string) {
+    this.categoryService.addCategory(name);
+  }
+
+  addCategoryFromInput(input: any): void {
+    const value = input.value?.toString() ?? '';
+    this.addCategory(value);
+    input.value = '';
+  }
+
+  selectCategory(id: string | null) {
+    this.selectedCategoryId = id;
+  }
+
+  getFilteredTasks(tasks: Task[]): Task[] {
+    if (!this.selectedCategoryId) return tasks;
+    return tasks.filter((t) => t.categoryId === this.selectedCategoryId);
+  }
+
+  getCategoryName(categoryId?: string): string {
+    if (!categoryId) return 'Sin categoría';
+
+    let categoryName = 'Sin categoría';
+
+    this.categoryService.categories$
+      .subscribe((categories) => {
+        const category = categories.find((cat) => cat.id === categoryId);
+        categoryName = category?.name ?? 'Sin categoría';
+      })
+      .unsubscribe();
+
+    return categoryName;
   }
 }

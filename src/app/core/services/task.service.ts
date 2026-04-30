@@ -6,60 +6,63 @@ import { Task } from '../../shared/models/task.model';
 import { StorageService } from './storage.service';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class TaskService {
-    private readonly storageKey = 'taskboard_tasks';
+  private readonly storageKey = 'taskboard_tasks';
 
-    private tasksSubject = new BehaviorSubject<Task[]>([]);
-    tasks$ = this.tasksSubject.asObservable();
+  private tasksSubject = new BehaviorSubject<Task[]>([]);
+  tasks$ = this.tasksSubject.asObservable();
 
-    constructor(private storageService: StorageService) {
-        this.loadTasks();
-    }
+  constructor(private storageService: StorageService) {
+    this.loadTasks();
+  }
 
-    private loadTasks(): void {
-        const tasks = this.storageService.get<Task[]>(this.storageKey) ?? [];
-        this.tasksSubject.next(tasks);
-    }
+  private loadTasks(): void {
+    const tasks = this.storageService.get<Task[]>(this.storageKey) ?? [];
+    this.tasksSubject.next(tasks);
+  }
 
-    private saveTasks(tasks: Task[]): void {
-        this.storageService.set(this.storageKey, tasks);
-        this.tasksSubject.next(tasks);
-    }
+  private saveTasks(tasks: Task[]): void {
+    this.storageService.set(this.storageKey, tasks);
+    this.tasksSubject.next(tasks);
+  }
 
-    addTask(title: string): void {
-        const cleanTitle = title.trim();
+  addTask(title: string, categoryId?: string): void {
+    const cleanTitle = title.trim();
 
-        if (!cleanTitle) return;
+    if (!cleanTitle) return;
 
-        const newTask: Task = {
-            id: uuidv4(),
-            title: cleanTitle,
-            completed: false,
-            priority: 'medium',
-            createdAt: new Date().toISOString()
-        };
+    const newTask: Task = {
+      id: uuidv4(),
+      title: cleanTitle,
+      completed: false,
+      priority: 'medium',
+      categoryId,
+      createdAt: new Date().toISOString(),
+    };
 
-        this.saveTasks([newTask, ...this.tasksSubject.value]);
-    }
+    this.saveTasks([newTask, ...this.tasksSubject.value]);
+  }
 
-    toggleTask(taskId: string): void {
-        const updatedTasks = this.tasksSubject.value.map(task =>
-            task.id === taskId
-                ? {
-                    ...task,
-                    completed: !task.completed,
-                    updatedAt: new Date().toISOString()
-                }
-                : task
-        );
+  toggleTask(taskId: string): void {
+    const updatedTasks = this.tasksSubject.value.map((task) =>
+      task.id === taskId
+        ? {
+            ...task,
+            completed: !task.completed,
+            updatedAt: new Date().toISOString(),
+          }
+        : task,
+    );
 
-        this.saveTasks(updatedTasks);
-    }
+    this.saveTasks(updatedTasks);
+  }
 
-    deleteTask(taskId: string): void {
-        const updatedTasks = this.tasksSubject.value.filter(task => task.id !== taskId);
-        this.saveTasks(updatedTasks);
-    }
+  deleteTask(taskId: string): void {
+    const updatedTasks = this.tasksSubject.value.filter(
+      (task) => task.id !== taskId,
+    );
+    this.saveTasks(updatedTasks);
+  }
 }

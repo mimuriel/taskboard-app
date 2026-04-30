@@ -14,58 +14,83 @@
   <ion-card>
     <ion-card-content>
       <ion-item lines="none">
-        <ion-input
-          [(ngModel)]="newTaskTitle"
-          placeholder="Escribe una nueva tarea"
-          (keyup.enter)="addTask()">
+        <ion-input [(ngModel)]="newTaskTitle" placeholder="Escribe una nueva tarea" (keyup.enter)="addTask()">
         </ion-input>
+      </ion-item>
+
+      @if (categories$ | async; as categories) {
+      <ion-item lines="none">
+        <ion-select [(ngModel)]="selectedNewTaskCategoryId" placeholder="Categoría opcional">
+          @for (cat of categories; track cat.id) {
+          <ion-select-option [value]="cat.id">
+            {{ cat.name }}
+          </ion-select-option>
+          }
+        </ion-select>
 
         <ion-button slot="end" (click)="addTask()">
           <ion-icon name="add-outline"></ion-icon>
         </ion-button>
       </ion-item>
+      }
     </ion-card-content>
   </ion-card>
 
-  @if (tasks$ | async; as tasks) {
-    <div class="summary">
-      <ion-badge color="primary">Total: {{ tasks.length }}</ion-badge>
-      <ion-badge color="success">
-        Completadas: {{ getCompletedCount(tasks) }}
-      </ion-badge>
-    </div>
+  <ion-card>
+    <ion-card-content>
+      <ion-item>
+        <ion-input #catInput placeholder="Nueva categoría"></ion-input>
+        <ion-button (click)="addCategoryFromInput(catInput)"> </ion-button>
+      </ion-item>
 
-    @if (tasks.length > 0) {
-      <ion-list>
-        @for (task of tasks; track task.id) {
-          <ion-item>
-            <ion-checkbox
-              slot="start"
-              [checked]="task.completed"
-              (ionChange)="toggleTask(task.id)">
-            </ion-checkbox>
+      @if (categories$ | async; as categories) {
+      <div class="categories">
+        <ion-button size="small" fill="outline" (click)="selectCategory(null)">
+          Todas
+        </ion-button>
 
-            <ion-label [ngClass]="{ completed: task.completed }">
-              <h2>{{ task.title }}</h2>
-              <p>Prioridad: {{ task.priority }}</p>
-            </ion-label>
-
-            <ion-button
-              fill="clear"
-              color="danger"
-              slot="end"
-              (click)="deleteTask(task.id)">
-              <ion-icon name="trash-outline"></ion-icon>
-            </ion-button>
-          </ion-item>
+        @for (cat of categories; track cat.id) {
+        <ion-button size="small" [color]="cat.color" (click)="selectCategory(cat.id)">
+          {{ cat.name }}
+        </ion-button>
         }
-      </ion-list>
-    } @else {
-      <div class="empty-state">
-        <h2>No tienes tareas todavía</h2>
-        <p>Agrega tu primera tarea para comenzar.</p>
       </div>
+      }
+    </ion-card-content>
+  </ion-card>
+  @if (tasks$ | async; as tasks) {
+  <div class="summary">
+    <ion-badge color="primary">Total: {{ tasks.length }}</ion-badge>
+    <ion-badge color="success">
+      Completadas: {{ getCompletedCount(tasks) }}
+    </ion-badge>
+  </div>
+
+  @if (tasks.length > 0) {
+  <ion-list>
+    @for (task of getFilteredTasks(tasks); track task.id) { <ion-item>
+      <ion-checkbox slot="start" [checked]="task.completed" (ionChange)="toggleTask(task.id)">
+      </ion-checkbox>
+
+      <ion-label [ngClass]="{ completed: task.completed }">
+        <h2>{{ task.title }}</h2>
+        <p>
+          Prioridad: {{ task.priority }} · Categoría: {{ getCategoryName(task.categoryId) }}
+        </p>
+      </ion-label>
+
+      <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
     }
+  </ion-list>
+  } @else {
+  <div class="empty-state">
+    <h2>No tienes tareas todavía</h2>
+    <p>Agrega tu primera tarea para comenzar.</p>
+  </div>
+  }
   }
 
 </ion-content>
