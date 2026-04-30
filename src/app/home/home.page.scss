@@ -1,27 +1,41 @@
-#container {
+.hero {
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    opacity: 0.7;
+  }
+}
+
+.summary {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.completed {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.empty-state {
   text-align: center;
+  margin-top: 48px;
+  opacity: 0.75;
 
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
+  h2 {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
+  p {
+    margin: 0;
+  }
 }
