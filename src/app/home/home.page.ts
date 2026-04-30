@@ -18,6 +18,8 @@ import {
   IonBadge,
   IonSelect,
   IonSelectOption,
+  IonChip,
+  IonButtons  
 } from '@ionic/angular/standalone';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { trashOutline, addOutline } from 'ionicons/icons';
@@ -54,6 +56,8 @@ import { CategoryService } from '../core/services/category.service';
     IonBadge,
     IonSelect,
     IonSelectOption,
+    IonChip,
+    IonButtons
   ],
 })
 export class HomePage {
@@ -62,6 +66,8 @@ export class HomePage {
   categories$ = this.categoryService.categories$;
   selectedCategoryId: string | null = null;
   selectedNewTaskCategoryId: string | undefined;
+  editingCategoryId: string | null = null;
+  editingCategoryName = '';
 
   constructor(
     private taskService: TaskService,
@@ -124,5 +130,34 @@ export class HomePage {
       .unsubscribe();
 
     return categoryName;
+  }
+
+  startEditCategory(categoryId: string, currentName: string): void {
+    this.editingCategoryId = categoryId;
+    this.editingCategoryName = currentName;
+  }
+
+  saveEditCategory(): void {
+    if (!this.editingCategoryId) return;
+
+    this.categoryService.updateCategory(
+      this.editingCategoryId,
+      this.editingCategoryName,
+    );
+
+    this.editingCategoryId = null;
+    this.editingCategoryName = '';
+  }
+
+  deleteCategory(categoryId: string): void {
+    this.categoryService.deleteCategory(categoryId);
+
+    if (this.selectedCategoryId === categoryId) {
+      this.selectedCategoryId = null;
+    }
+
+    if (this.selectedNewTaskCategoryId === categoryId) {
+      this.selectedNewTaskCategoryId = undefined;
+    }
   }
 }
