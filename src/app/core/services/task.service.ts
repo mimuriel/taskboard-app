@@ -65,4 +65,18 @@ export class TaskService {
     );
     this.saveTasks(updatedTasks);
   }
+
+  removeCategoryFromTasks(categoryId: string): void {
+    const updatedTasks = this.tasksSubject.value.map((task) =>
+      task.categoryId === categoryId
+        ? {
+            ...task,
+            categoryId: undefined,
+            updatedAt: new Date().toISOString(),
+          }
+        : task,
+    );
+
+    this.saveTasks(updatedTasks);
+  }
 }
