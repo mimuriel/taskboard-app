@@ -18,8 +18,7 @@ import {
   IonBadge,
   IonSelect,
   IonSelectOption,
-  IonChip,
-  IonButtons,
+  IonChip
 } from '@ionic/angular/standalone';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { trashOutline, addOutline } from 'ionicons/icons';
@@ -29,6 +28,7 @@ import { TaskService } from '../core/services/task.service';
 import { Task } from '../shared/models/task.model';
 import { CategoryService } from '../core/services/category.service';
 
+import { FeatureFlagService } from '../core/services/feature-flag.service';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -56,8 +56,7 @@ import { CategoryService } from '../core/services/category.service';
     IonBadge,
     IonSelect,
     IonSelectOption,
-    IonChip,
-    IonButtons,
+    IonChip
   ],
 })
 export class HomePage {
@@ -68,12 +67,20 @@ export class HomePage {
   selectedNewTaskCategoryId: string | undefined;
   editingCategoryId: string | null = null;
   editingCategoryName = '';
+  isCategoriesEnabled: boolean | null = null; 
 
   constructor(
     private taskService: TaskService,
     private categoryService: CategoryService,
+    private featureFlagService: FeatureFlagService
   ) {
     addIcons({ trashOutline, addOutline });
+    this.loadFeatureFlags();
+  }
+
+  private async loadFeatureFlags(): Promise<void> {
+    this.isCategoriesEnabled = await this.featureFlagService.isCategoriesEnabled();
+    console.log('Enable categories:', this.isCategoriesEnabled);
   }
 
   getCompletedCount(tasks: Task[]): number {

@@ -16,9 +16,13 @@
       <ion-item lines="none">
         <ion-input [(ngModel)]="newTaskTitle" placeholder="Escribe una nueva tarea" (keyup.enter)="addTask()">
         </ion-input>
+
+        <ion-button slot="end" (click)="addTask()">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-button>
       </ion-item>
 
-      @if (categories$ | async; as categories) {
+      @if (isCategoriesEnabled && (categories$ | async); as categories) {
       <ion-item lines="none">
         <ion-select [(ngModel)]="selectedNewTaskCategoryId" placeholder="Categoría opcional">
           @for (cat of categories; track cat.id) {
@@ -27,20 +31,19 @@
           </ion-select-option>
           }
         </ion-select>
-
-        <ion-button slot="end" (click)="addTask()">
-          <ion-icon name="add-outline"></ion-icon>
-        </ion-button>
       </ion-item>
       }
     </ion-card-content>
   </ion-card>
 
+  @if (isCategoriesEnabled) {
   <ion-card>
     <ion-card-content>
       <ion-item>
         <ion-input #catInput placeholder="Nueva categoría"></ion-input>
-        <ion-button (click)="addCategoryFromInput(catInput)"> <ion-icon name="add-outline"></ion-icon> </ion-button>
+        <ion-button (click)="addCategoryFromInput(catInput)">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-button>
       </ion-item>
 
       @if (categories$ | async; as categories) {
@@ -64,6 +67,7 @@
           </ion-button>
         </ion-chip>
         }
+
         @if (editingCategoryId) {
         <ion-item>
           <ion-input [(ngModel)]="editingCategoryName" placeholder="Editar categoría">
@@ -78,6 +82,8 @@
       }
     </ion-card-content>
   </ion-card>
+  }
+
   @if (tasks$ | async; as tasks) {
   <div class="summary">
     <ion-badge color="primary">Total: {{ tasks.length }}</ion-badge>
@@ -88,16 +94,21 @@
 
   @if (tasks.length > 0) {
   <ion-list>
-    @for (task of getFilteredTasks(tasks); track task.id) { 
-      <ion-item>
+    @for (task of getFilteredTasks(tasks); track task.id) {
+    <ion-item>
       <ion-checkbox slot="start" [checked]="task.completed" (ionChange)="toggleTask(task.id)">
       </ion-checkbox>
 
       <ion-label [ngClass]="{ completed: task.completed }">
         <h2>{{ task.title }}</h2>
+
+        @if (isCategoriesEnabled) {
         <p>
           Prioridad: {{ task.priority }} · Categoría: {{ getCategoryName(task.categoryId) }}
         </p>
+        } @else {
+        <p>Prioridad: {{ task.priority }}</p>
+        }
       </ion-label>
 
       <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
