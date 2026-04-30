@@ -1,0 +1,7 @@
+{
+  "name": "taskboard-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
