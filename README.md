@@ -121,10 +121,18 @@ src/app/
 
 ## 📸 Vista de la aplicación
 ### Pantalla principal
-![Home](docs/home.png)
-
-### Edición de tareas
-![Edit Task](docs/edit-task.png)
+<p align="center">
+  <img src="src/docs/home.png" width="300"/>
+</p>
 
 ### Gestión de categorías
-![Categories](docs/categories.png)
+<p align="center">
+<img src="src/docs/categories.png" width="200"/>
+<img src="src/docs/managementCategories.png" width="200"/>
+</p>
+
+### Gestión de tareas
+<p align="center">
+<img src="src/docs/createTask.png" width="200"/>
+<img src="src/docs/listTask.png" width="200"/>
+</p>
