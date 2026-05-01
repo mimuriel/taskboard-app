@@ -79,4 +79,37 @@ export class TaskService {
 
     this.saveTasks(updatedTasks);
   }
+
+  updateTaskTitle(taskId: string, title: string): void {
+    const tasks = this.tasksSubject.value.map((task) =>
+      task.id === taskId ? { ...task, title: title.trim() } : task,
+    );
+
+    this.tasksSubject.next(tasks);
+    this.saveTasks(tasks);
+  }
+
+  updateTaskCategory(taskId: string, categoryId?: string): void {
+    const tasks = this.tasksSubject.value.map((task) =>
+      task.id === taskId ? { ...task, categoryId } : task,
+    );
+
+    this.tasksSubject.next(tasks);
+    this.saveTasks(tasks);
+  }
+
+  updateTask(taskId: string, title: string, categoryId?: string): void {
+    const tasks = this.tasksSubject.value.map((task) =>
+      task.id === taskId
+        ? {
+            ...task,
+            title: title.trim(),
+            categoryId,
+          }
+        : task,
+    );
+
+    this.tasksSubject.next(tasks);
+    this.saveTasks(tasks);
+  }
 }
