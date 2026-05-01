@@ -1,7 +1,7 @@
 {
-  "name": "taskboard-app",
+  "name": "taskboard-cordova-temp",
   "integrations": {
-    "capacitor": {}
+    "cordova": {}
   },
-  "type": "angular-standalone"
+  "type": "angular"
 }
