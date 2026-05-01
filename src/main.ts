@@ -1,19 +1,7 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
-import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideRemoteConfig, getRemoteConfig } from '@angular/fire/remote-config';
-import { firebaseConfig } from './environments/firebase.config';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-import { routes } from './app/app.routes';
-import { AppComponent } from './app/app.component';
+import { AppModule } from './app/app.module';
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    provideIonicAngular(),
-    provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideFirebaseApp(() => initializeApp(firebaseConfig)),
-    provideRemoteConfig(() => getRemoteConfig()),
-  ],
-});
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => console.log(err));

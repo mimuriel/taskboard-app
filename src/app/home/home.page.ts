@@ -1,80 +1,32 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonItem,
-  IonInput,
-  IonButton,
-  IonList,
-  IonLabel,
-  IonCheckbox,
-  IonIcon,
-  IonCard,
-  IonCardContent,
-  IonSelect,
-  IonSelectOption,
-  IonChip,
-  IonAccordion,
-  IonAccordionGroup,
-  IonModal,
-  IonButtons,
-} from '@ionic/angular/standalone';
-import { AsyncPipe, NgClass } from '@angular/common';
 import { trashOutline, addOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
 import { TaskService } from '../core/services/task.service';
 import { Task } from '../shared/models/task.model';
 import { CategoryService } from '../core/services/category.service';
-
 import { FeatureFlagService } from '../core/services/feature-flag.service';
+
 @Component({
   selector: 'app-home',
+  standalone: false,
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    FormsModule,
-    AsyncPipe,
-    NgClass,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonItem,
-    IonInput,
-    IonButton,
-    IonList,
-    IonLabel,
-    IonCheckbox,
-    IonIcon,
-    IonCard,
-    IonCardContent,
-    IonSelect,
-    IonSelectOption,
-    IonChip,
-    IonAccordion,
-    IonAccordionGroup,
-    IonModal,
-    IonButtons,
-  ],
 })
 export class HomePage {
   newTaskTitle = '';
   tasks$ = this.taskService.tasks$;
   categories$ = this.categoryService.categories$;
+
   selectedCategoryId: string | null = null;
   selectedNewTaskCategoryId: string | undefined;
   isCategoriesEnabled: boolean | null = null;
+
   isCategoryModalOpen = false;
   categoryToEditId: string | null = null;
   categoryToEditName = '';
+
   selectedFilter: 'all' | 'completed' | 'pending' = 'all';
 
   constructor(
@@ -89,6 +41,7 @@ export class HomePage {
   private async loadFeatureFlags(): Promise<void> {
     this.isCategoriesEnabled =
       await this.featureFlagService.isCategoriesEnabled();
+
     console.log('Enable categories:', this.isCategoriesEnabled);
   }
 
@@ -110,7 +63,7 @@ export class HomePage {
     this.taskService.deleteTask(taskId);
   }
 
-  addCategory(name: string) {
+  addCategory(name: string): void {
     this.categoryService.addCategory(name);
   }
 
@@ -129,13 +82,13 @@ export class HomePage {
     let result = tasks;
 
     if (this.selectedCategoryId) {
-      result = result.filter((t) => t.categoryId === this.selectedCategoryId);
+      result = result.filter((task) => task.categoryId === this.selectedCategoryId);
     }
 
     if (this.selectedFilter === 'completed') {
-      result = result.filter((t) => t.completed);
+      result = result.filter((task) => task.completed);
     } else if (this.selectedFilter === 'pending') {
-      result = result.filter((t) => !t.completed);
+      result = result.filter((task) => !task.completed);
     }
 
     return result;
