@@ -15,10 +15,13 @@ import {
   IonIcon,
   IonCard,
   IonCardContent,
-  IonBadge,
   IonSelect,
   IonSelectOption,
-  IonChip
+  IonChip,
+  IonAccordion,
+  IonAccordionGroup,
+  IonModal,
+  IonButtons,
 } from '@ionic/angular/standalone';
 import { AsyncPipe, NgClass } from '@angular/common';
 import { trashOutline, addOutline } from 'ionicons/icons';
@@ -53,10 +56,13 @@ import { FeatureFlagService } from '../core/services/feature-flag.service';
     IonIcon,
     IonCard,
     IonCardContent,
-    IonBadge,
     IonSelect,
     IonSelectOption,
-    IonChip
+    IonChip,
+    IonAccordion,
+    IonAccordionGroup,
+    IonModal,
+    IonButtons,
   ],
 })
 export class HomePage {
@@ -65,21 +71,24 @@ export class HomePage {
   categories$ = this.categoryService.categories$;
   selectedCategoryId: string | null = null;
   selectedNewTaskCategoryId: string | undefined;
-  editingCategoryId: string | null = null;
-  editingCategoryName = '';
-  isCategoriesEnabled: boolean | null = null; 
+  isCategoriesEnabled: boolean | null = null;
+  isCategoryModalOpen = false;
+  categoryToEditId: string | null = null;
+  categoryToEditName = '';
+  selectedFilter: 'all' | 'completed' | 'pending' = 'all';
 
   constructor(
     private taskService: TaskService,
     private categoryService: CategoryService,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
   ) {
     addIcons({ trashOutline, addOutline });
     this.loadFeatureFlags();
   }
 
   private async loadFeatureFlags(): Promise<void> {
-    this.isCategoriesEnabled = await this.featureFlagService.isCategoriesEnabled();
+    this.isCategoriesEnabled =
+      await this.featureFlagService.isCategoriesEnabled();
     console.log('Enable categories:', this.isCategoriesEnabled);
   }
 
@@ -101,10 +110,6 @@ export class HomePage {
     this.taskService.deleteTask(taskId);
   }
 
-  trackByTaskId(index: number, task: Task): string {
-    return task.id;
-  }
-
   addCategory(name: string) {
     this.categoryService.addCategory(name);
   }
@@ -115,13 +120,25 @@ export class HomePage {
     input.value = '';
   }
 
-  selectCategory(id: string | null) {
-    this.selectedCategoryId = id;
+  selectCategory(categoryId: string | null): void {
+    this.selectedCategoryId = categoryId;
+    this.selectedFilter = 'all';
   }
 
   getFilteredTasks(tasks: Task[]): Task[] {
-    if (!this.selectedCategoryId) return tasks;
-    return tasks.filter((t) => t.categoryId === this.selectedCategoryId);
+    let result = tasks;
+
+    if (this.selectedCategoryId) {
+      result = result.filter((t) => t.categoryId === this.selectedCategoryId);
+    }
+
+    if (this.selectedFilter === 'completed') {
+      result = result.filter((t) => t.completed);
+    } else if (this.selectedFilter === 'pending') {
+      result = result.filter((t) => !t.completed);
+    }
+
+    return result;
   }
 
   getCategoryName(categoryId?: string): string {
@@ -139,23 +156,6 @@ export class HomePage {
     return categoryName;
   }
 
-  startEditCategory(categoryId: string, currentName: string): void {
-    this.editingCategoryId = categoryId;
-    this.editingCategoryName = currentName;
-  }
-
-  saveEditCategory(): void {
-    if (!this.editingCategoryId) return;
-
-    this.categoryService.updateCategory(
-      this.editingCategoryId,
-      this.editingCategoryName,
-    );
-
-    this.editingCategoryId = null;
-    this.editingCategoryName = '';
-  }
-
   deleteCategory(categoryId: string): void {
     this.categoryService.deleteCategory(categoryId);
     this.taskService.removeCategoryFromTasks(categoryId);
@@ -166,6 +166,44 @@ export class HomePage {
 
     if (this.selectedNewTaskCategoryId === categoryId) {
       this.selectedNewTaskCategoryId = undefined;
+    }
+  }
+
+  openEditCategoryModal(categoryId: string, currentName: string): void {
+    this.categoryToEditId = categoryId;
+    this.categoryToEditName = currentName;
+    this.isCategoryModalOpen = true;
+  }
+
+  closeCategoryModal(): void {
+    this.isCategoryModalOpen = false;
+    this.categoryToEditId = null;
+    this.categoryToEditName = '';
+  }
+
+  saveCategoryChanges(): void {
+    if (!this.categoryToEditId) return;
+
+    this.categoryService.updateCategory(
+      this.categoryToEditId,
+      this.categoryToEditName,
+    );
+
+    this.closeCategoryModal();
+  }
+
+  deleteCategoryFromModal(): void {
+    if (!this.categoryToEditId) return;
+
+    this.deleteCategory(this.categoryToEditId);
+    this.closeCategoryModal();
+  }
+
+  selectFilter(filter: 'all' | 'completed' | 'pending'): void {
+    this.selectedFilter = filter;
+
+    if (filter === 'all') {
+      this.selectedCategoryId = null;
     }
   }
 }

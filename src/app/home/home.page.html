@@ -1,14 +1,14 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>TaskBoard</ion-title>
+    <ion-title>TaskFlow</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
 
   <section class="hero">
-    <h1>Organiza tu día</h1>
-    <p>Crea, completa y elimina tareas de forma rápida.</p>
+    <h1>Enfoque sin límites</h1>
+    <p>Libera espacio mental. Organiza proyectos, metas y tareas en un solo sistema diseñado para la acción.</p>
   </section>
 
   <ion-card>
@@ -23,6 +23,7 @@
       </ion-item>
 
       @if (isCategoriesEnabled && (categories$ | async); as categories) {
+      @if (categories.length > 0) {
       <ion-item lines="none">
         <ion-select [(ngModel)]="selectedNewTaskCategoryId" placeholder="Categoría opcional">
           @for (cat of categories; track cat.id) {
@@ -30,67 +31,79 @@
             {{ cat.name }}
           </ion-select-option>
           }
+
         </ion-select>
       </ion-item>
-      }
-    </ion-card-content>
-  </ion-card>
 
-  @if (isCategoriesEnabled) {
-  <ion-card>
-    <ion-card-content>
-      <ion-item>
-        <ion-input #catInput placeholder="Nueva categoría"></ion-input>
-        <ion-button (click)="addCategoryFromInput(catInput)">
-          <ion-icon name="add-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
-
-      @if (categories$ | async; as categories) {
-      <div class="categories">
-        <ion-button size="small" fill="outline" (click)="selectCategory(null)">
-          Todas
-        </ion-button>
-
-        @for (cat of categories; track cat.id) {
-        <ion-chip [color]="cat.color">
-          <ion-label (click)="selectCategory(cat.id)">
-            {{ cat.name }}
-          </ion-label>
-
-          <ion-button fill="clear" size="small" (click)="startEditCategory(cat.id, cat.name)">
-            Editar
-          </ion-button>
-
-          <ion-button fill="clear" size="small" color="danger" (click)="deleteCategory(cat.id)">
-            Eliminar
-          </ion-button>
-        </ion-chip>
-        }
-
-        @if (editingCategoryId) {
-        <ion-item>
-          <ion-input [(ngModel)]="editingCategoryName" placeholder="Editar categoría">
-          </ion-input>
-
-          <ion-button slot="end" (click)="saveEditCategory()">
-            Guardar
-          </ion-button>
-        </ion-item>
-        }
+      } @else {
+      <div class="empty-categories">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>No tienes categorías aún. Crea una para organizar mejor tus tareas.</span>
       </div>
+
+      }
+
       }
     </ion-card-content>
   </ion-card>
-  }
 
   @if (tasks$ | async; as tasks) {
-  <div class="summary">
-    <ion-badge color="primary">Total: {{ tasks.length }}</ion-badge>
-    <ion-badge color="success">
-      Completadas: {{ getCompletedCount(tasks) }}
-    </ion-badge>
+  @if (isCategoriesEnabled && (categories$ | async); as categories) {
+  <section class="hero">
+    <p>Selecciona la opcion que quieres filtrar(Todas,Completas o por Categoria)</p>
+  </section>
+  <div class="filter-section">
+    <ion-chip [color]="selectedFilter === 'all' && !selectedCategoryId ? 'primary' : 'medium'"
+      (click)="selectFilter('all')">
+      @if (selectedFilter === 'all' && !selectedCategoryId) {
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      }
+      <ion-label>Total: {{ tasks.length }}</ion-label>
+    </ion-chip>
+
+    <ion-chip [color]="selectedFilter === 'completed' ? 'success' : 'medium'" (click)="selectFilter('completed')">
+      @if (selectedFilter === 'completed') {
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      }
+      <ion-label>Completadas: {{ getCompletedCount(tasks) }}</ion-label>
+    </ion-chip>
   </div>
+  <ion-accordion-group>
+    <ion-accordion value="categories">
+      <ion-item slot="header" lines="none">
+        <ion-label>Categorías</ion-label>
+      </ion-item>
+
+      <div class="accordion-content" slot="content">
+
+        <ion-item lines="none" class="category-create">
+          <ion-input #catInput placeholder="Nueva categoría">
+          </ion-input>
+
+          <ion-button slot="end" (click)="addCategoryFromInput(catInput)">
+            <ion-icon name="add-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        @for (cat of categories; track cat.id) {
+        <div class="category-row">
+          <ion-chip [color]="selectedCategoryId === cat.id ? 'primary' : cat.color" (click)="selectCategory(cat.id)">
+            @if (selectedCategoryId === cat.id) {
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            }
+            <ion-label>{{ cat.name }}</ion-label>
+          </ion-chip>
+
+          <ion-button size="small" fill="clear" color="medium" (click)="openEditCategoryModal(cat.id, cat.name)">
+            Editar
+          </ion-button>
+        </div>
+        }
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+
+  }
 
   @if (tasks.length > 0) {
   <ion-list>
@@ -104,10 +117,10 @@
 
         @if (isCategoriesEnabled) {
         <p>
-          Prioridad: {{ task.priority }} · Categoría: {{ getCategoryName(task.categoryId) }}
+          Categoría: {{ getCategoryName(task.categoryId) }}
         </p>
         } @else {
-        <p>Prioridad: {{ task.priority }}</p>
+        <p>""</p>
         }
       </ion-label>
 
@@ -125,4 +138,32 @@
   }
   }
 
+  <ion-modal [isOpen]="isCategoryModalOpen" (didDismiss)="closeCategoryModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Editar categoría</ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="closeCategoryModal()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-item>
+          <ion-input [(ngModel)]="categoryToEditName" placeholder="Nombre de la categoría">
+          </ion-input>
+        </ion-item>
+
+        <ion-button expand="block" (click)="saveCategoryChanges()">
+          Guardar cambios
+        </ion-button>
+
+        <ion-button expand="block" color="danger" fill="outline" (click)="deleteCategoryFromModal()">
+          Eliminar categoría
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
