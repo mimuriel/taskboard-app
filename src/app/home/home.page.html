@@ -25,13 +25,13 @@
       @if (isCategoriesEnabled && (categories$ | async); as categories) {
       @if (categories.length > 0) {
       <ion-item lines="none">
-        <ion-select [(ngModel)]="selectedNewTaskCategoryId" placeholder="Categoría opcional">
+        <ion-select [(ngModel)]="selectedNewTaskCategoryId" placeholder="Lista de categorías"
+          [interfaceOptions]="{ header: 'Categorías', subHeader: 'Elige una opción', message: 'Opcional'}">
           @for (cat of categories; track cat.id) {
           <ion-select-option [value]="cat.id">
             {{ cat.name }}
           </ion-select-option>
           }
-
         </ion-select>
       </ion-item>
 
@@ -48,9 +48,13 @@
   </ion-card>
 
   @if (tasks$ | async; as tasks) {
-  @if (isCategoriesEnabled && (categories$ | async); as categories) {
   <section class="hero">
-    <p>Selecciona la opcion que quieres filtrar(Todas,Completas o por Categoria)</p>
+    <p>
+      Filtra tus tareas por estado
+      @if (isCategoriesEnabled) {
+      o categorías
+      }
+    </p>
   </section>
   <div class="filter-section">
     <ion-chip [color]="selectedFilter === 'all' && !selectedCategoryId ? 'primary' : 'medium'"
@@ -68,6 +72,7 @@
       <ion-label>Completadas: {{ getCompletedCount(tasks) }}</ion-label>
     </ion-chip>
   </div>
+  @if (isCategoriesEnabled && (categories$ | async); as categories) {
   <ion-accordion-group>
     <ion-accordion value="categories">
       <ion-item slot="header" lines="none">
@@ -94,8 +99,8 @@
             <ion-label>{{ cat.name }}</ion-label>
           </ion-chip>
 
-          <ion-button size="small" fill="clear" color="medium" (click)="openEditCategoryModal(cat.id, cat.name)">
-            Editar
+          <ion-button fill="clear" size="small" (click)="openEditCategoryModal(cat.id, cat.name)">
+            <ion-icon name="create-outline"></ion-icon>
           </ion-button>
         </div>
         }
@@ -124,6 +129,9 @@
         }
       </ion-label>
 
+      <ion-button fill="clear" size="small" (click)="openEditTaskModal(task)">
+        <ion-icon name="create-outline"></ion-icon>
+      </ion-button>
       <ion-button fill="clear" color="danger" slot="end" (click)="deleteTask(task.id)">
         <ion-icon name="trash-outline"></ion-icon>
       </ion-button>
@@ -132,8 +140,8 @@
   </ion-list>
   } @else {
   <div class="empty-state">
-    <h2>No tienes tareas todavía</h2>
-    <p>Agrega tu primera tarea para comenzar.</p>
+    <h2>Tu lista está despejada</h2>
+    <p>Es el momento perfecto para capturar una nueva idea o meta.</p>
   </div>
   }
   }
@@ -162,6 +170,49 @@
 
         <ion-button expand="block" color="danger" fill="outline" (click)="deleteCategoryFromModal()">
           Eliminar categoría
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="isTaskModalOpen" (didDismiss)="closeTaskModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Editar tarea</ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="closeTaskModal()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-item>
+          <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="taskToEditTitle"
+            placeholder="Nombre de la tarea"></ion-input>
+        </ion-item>
+
+        @if (isCategoriesEnabled && (categories$ | async); as categories) {
+        <ion-item>
+          <ion-select label="Categoría" labelPlacement="floating" [(ngModel)]="taskToEditCategoryId"
+            placeholder="Sin categoría" [interfaceOptions]="{ header: 'Selecciona categoría' }">
+            @for (cat of categories; track cat.id) {
+            <ion-select-option [value]="cat.id">
+              {{ cat.name }}
+            </ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+
+        <ion-button expand="block" fill="outline" color="medium" (click)="removeCategoryFromTask()">
+          Quitar categoría
+        </ion-button>
+        }
+
+        <ion-button expand="block" class="ion-margin-top" (click)="saveTaskChanges()"
+          [disabled]="!taskToEditTitle.trim()">
+          Guardar cambios
         </ion-button>
       </ion-content>
     </ng-template>

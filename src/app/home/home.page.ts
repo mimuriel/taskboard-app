@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { trashOutline, addOutline } from 'ionicons/icons';
+import { trashOutline, addOutline, createOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
 import { TaskService } from '../core/services/task.service';
@@ -27,6 +27,11 @@ export class HomePage {
   categoryToEditId: string | null = null;
   categoryToEditName = '';
 
+  isTaskModalOpen = false;
+  taskToEditId: string | null = null;
+  taskToEditTitle = '';
+  taskToEditCategoryId: string | undefined;
+
   selectedFilter: 'all' | 'completed' | 'pending' = 'all';
 
   constructor(
@@ -34,15 +39,13 @@ export class HomePage {
     private categoryService: CategoryService,
     private featureFlagService: FeatureFlagService,
   ) {
-    addIcons({ trashOutline, addOutline });
+    addIcons({ trashOutline, addOutline, createOutline });
     this.loadFeatureFlags();
   }
 
   private async loadFeatureFlags(): Promise<void> {
     this.isCategoriesEnabled =
       await this.featureFlagService.isCategoriesEnabled();
-
-    console.log('Enable categories:', this.isCategoriesEnabled);
   }
 
   getCompletedCount(tasks: Task[]): number {
@@ -82,7 +85,9 @@ export class HomePage {
     let result = tasks;
 
     if (this.selectedCategoryId) {
-      result = result.filter((task) => task.categoryId === this.selectedCategoryId);
+      result = result.filter(
+        (task) => task.categoryId === this.selectedCategoryId,
+      );
     }
 
     if (this.selectedFilter === 'completed') {
@@ -158,5 +163,35 @@ export class HomePage {
     if (filter === 'all') {
       this.selectedCategoryId = null;
     }
+  }
+
+  openEditTaskModal(task: Task): void {
+    this.taskToEditId = task.id;
+    this.taskToEditTitle = task.title;
+    this.taskToEditCategoryId = task.categoryId;
+    this.isTaskModalOpen = true;
+  }
+
+  closeTaskModal(): void {
+    this.isTaskModalOpen = false;
+    this.taskToEditId = null;
+    this.taskToEditTitle = '';
+    this.taskToEditCategoryId = undefined;
+  }
+
+  saveTaskChanges(): void {
+    if (!this.taskToEditId) return;
+
+    this.taskService.updateTask(
+      this.taskToEditId,
+      this.taskToEditTitle,
+      this.taskToEditCategoryId,
+    );
+
+    this.closeTaskModal();
+  }
+
+  removeCategoryFromTask(): void {
+    this.taskToEditCategoryId = undefined;
   }
 }
