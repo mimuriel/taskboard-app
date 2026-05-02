@@ -1,63 +1,110 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { v4 as uuidv4 } from 'uuid';
+import { HttpClient } from '@angular/common/http';
 
 import { Category } from '../../shared/models/category.model';
-import { StorageService } from './storage.service';
+import { environment } from '../../../environments/environment';
+interface FranchiseResponse {
+  id: string;
+  name: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class CategoryService {
-  private readonly STORAGE_KEY = 'taskboard_categories';
+  private readonly API_URL = `${environment.apiUrl}/franchises`;
 
   private categoriesSubject = new BehaviorSubject<Category[]>([]);
   categories$ = this.categoriesSubject.asObservable();
 
-  constructor(private storage: StorageService) {
+  constructor(private http: HttpClient) {
     this.loadCategories();
   }
 
   private loadCategories(): void {
-    const categories = this.storage.get<Category[]>(this.STORAGE_KEY) ?? [];
-    this.categoriesSubject.next(categories);
-  }
+    this.http.get<FranchiseResponse[]>(this.API_URL).subscribe({
+      next: (franchises) => {
+        const categories = franchises.map((franchise) =>
+          this.mapFranchiseToCategory(franchise),
+        );
 
-  private save(categories: Category[]): void {
-    this.storage.set(this.STORAGE_KEY, categories);
-    this.categoriesSubject.next(categories);
+        this.categoriesSubject.next(categories);
+      },
+      error: (error) => {
+        console.error('Error cargando franquicias:', error);
+      },
+    });
   }
 
   addCategory(name: string): void {
-    const newCategory: Category = {
-      id: uuidv4(),
-      name,
+    const cleanName = name.trim();
+    if (!cleanName) return;
+
+    this.http
+      .post<FranchiseResponse>(this.API_URL, {
+        name: cleanName,
+      })
+      .subscribe({
+        next: (franchise) => {
+          const newCategory = this.mapFranchiseToCategory(franchise);
+          this.categoriesSubject.next([
+            newCategory,
+            ...this.categoriesSubject.value,
+          ]);
+        },
+        error: (error) => {
+          console.error('Error creando franquicia:', error);
+        },
+      });
+  }
+
+  updateCategory(id: string, name: string): void {
+    const cleanName = name.trim();
+
+    if (!cleanName) return;
+
+    this.http
+      .patch<FranchiseResponse>(`${this.API_URL}/${id}/name`, {
+        name: cleanName,
+      })
+      .subscribe({
+        next: (franchise) => {
+          const updated = this.categoriesSubject.value.map((category) =>
+            category.id === id
+              ? { ...category, name: franchise.name }
+              : category,
+          );
+
+          this.categoriesSubject.next(updated);
+        },
+        error: (error) => {
+          console.error('Error actualizando franquicia:', error);
+        },
+      });
+  }
+
+  deleteCategory(id: string) {
+    return this.http.delete<void>(`${this.API_URL}/${id}`);
+  }
+
+  removeCategoryLocal(id: string): void {
+    const filtered = this.categoriesSubject.value.filter(
+      category => category.id !== id
+    );
+
+    this.categoriesSubject.next(filtered);
+  }
+
+  private mapFranchiseToCategory(franchise: FranchiseResponse): Category {
+    return {
+      id: franchise.id,
+      name: franchise.name,
       color: this.getRandomColor(),
       icon: 'pricetag',
       createdAt: new Date().toISOString(),
     };
-
-    this.save([newCategory, ...this.categoriesSubject.value]);
   }
-
-  deleteCategory(id: string): void {
-    const filtered = this.categoriesSubject.value.filter((c) => c.id !== id);
-    this.save(filtered);
-  }
-
-  updateCategory(id: string, name: string): void {
-  const cleanName = name.trim();
-
-  if (!cleanName) return;
-
-  const updated = this.categoriesSubject.value.map(category =>
-    category.id === id
-      ? { ...category, name: cleanName }
-      : category
-  );
-
-  this.save(updated);
-}
 
   private getRandomColor(): string {
     const colors = [

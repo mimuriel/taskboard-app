@@ -6,6 +6,7 @@ import { TaskService } from '../core/services/task.service';
 import { Task } from '../shared/models/task.model';
 import { CategoryService } from '../core/services/category.service';
 import { FeatureFlagService } from '../core/services/feature-flag.service';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -38,6 +39,7 @@ export class HomePage {
     private taskService: TaskService,
     private categoryService: CategoryService,
     private featureFlagService: FeatureFlagService,
+    private alertController: AlertController,
   ) {
     addIcons({ trashOutline, addOutline, createOutline });
     this.loadFeatureFlags();
@@ -46,6 +48,16 @@ export class HomePage {
   private async loadFeatureFlags(): Promise<void> {
     this.isCategoriesEnabled =
       await this.featureFlagService.isCategoriesEnabled();
+  }
+
+  async showErrorAlert(message: string): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'No se puede eliminar',
+      message,
+      buttons: ['Aceptar'],
+    });
+
+    await alert.present();
   }
 
   getCompletedCount(tasks: Task[]): number {
@@ -114,17 +126,29 @@ export class HomePage {
     return categoryName;
   }
 
-  deleteCategory(categoryId: string): void {
-    this.categoryService.deleteCategory(categoryId);
-    this.taskService.removeCategoryFromTasks(categoryId);
+  async deleteCategory(categoryId: string): Promise<void> {
+    this.categoryService.deleteCategory(categoryId).subscribe({
+      next: () => {
+        this.categoryService.removeCategoryLocal(categoryId);
 
-    if (this.selectedCategoryId === categoryId) {
-      this.selectedCategoryId = null;
-    }
+        this.taskService.removeCategoryFromTasks(categoryId);
 
-    if (this.selectedNewTaskCategoryId === categoryId) {
-      this.selectedNewTaskCategoryId = undefined;
-    }
+        if (this.selectedCategoryId === categoryId) {
+          this.selectedCategoryId = null;
+        }
+
+        if (this.selectedNewTaskCategoryId === categoryId) {
+          this.selectedNewTaskCategoryId = undefined;
+        }
+      },
+      error: (error) => {
+        const message =
+          error?.error?.message ||
+          'No se puede eliminar la categoría porque tiene sucursales asociadas.';
+
+        this.showErrorAlert(message);
+      },
+    });
   }
 
   openEditCategoryModal(categoryId: string, currentName: string): void {

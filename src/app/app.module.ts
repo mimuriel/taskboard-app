@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
@@ -19,6 +20,7 @@ import { firebaseConfig } from '../environments/firebase.config';
     AppRoutingModule,
   ],
   providers: [
+    provideHttpClient(),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideRemoteConfig(() => getRemoteConfig()),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
