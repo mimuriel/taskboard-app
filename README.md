@@ -67,6 +67,50 @@ Se implementa la bandera:
 | True | Habilita categorías y filtros por categoría |
 | False | Oculta completamente la funcionalidad de categorías |
 
+## Integración con el backend
+La aplicación TaskFlow está integrada de forma fullstack con una API RESTful desarrollada en Spring Boot. Para garantizar la consistencia de los datos y cumplir con los requisitos técnicos de la prueba, se ha implementado una arquitectura de sincronización en tiempo real entre las entidades del cliente y el servidor.
+
+### Mapeo de Entidades Fullstack
+
+Se aplica un mapeo de dominio para desacoplar la interfaz de usuario de la lógica de negocio del servidor:
+
+- Interfaz (Ionic): El usuario gestiona Categorías.
+- Servidor (Spring Boot): El sistema procesa y almacena Franquicias.
+
+### Implementación de Servicios (CRUD)
+
+El frontend utiliza el módulo provideHttpClient de Angular para ejecutar operaciones asíncronas que se reflejan directamente en la base de datos:
+
+- Listado: Recupera la colección de franquicias mediante un método GET y las renderiza dinámicamente como categorías.
+- -Creación: Al crear una categoría, se envía una petición POST al backend (CreateFranchiseUseCase), asegurando que los cambios persistan en el dominio de franquicias.
+- Actualización: Al editar una categoría, se envía una petición PATCH al backend (UpdateFranchiseUseCase), asegurando que los cambios persistan en el dominio de franquicias.
+ -Borrado Seguro: Al solicitar la eliminación de una categoría (DELETE), el sistema depende de la validación de integridad referencial del backend, la cual impide el borrado si existen dependencias activas (sucursales).
+
+### Configuración de Conectividad y CORS
+Para que la aplicación móvil pueda comunicarse con el servidor durante el desarrollo, se deben considerar los siguientes puntos de acceso:
+
+- Acceso desde Navegador (Localhost)
+Por defecto, la aplicación consume el backend en la dirección local estándar de desarrollo de Ionic:
+
+  Origin permitido: 
+  ```
+  http://localhost:8100
+  ```
+
+- Acceso desde Dispositivo Físico / Red Local (LAN)
+Para probar la aplicación en un celular real conectado a la misma red WiFi que el servidor, es necesario ajustar la URL base del servicio en el frontend y habilitar la IP en el backend:
+
+- En el Backend: En CorsConfig.java, asegúrese de añadir la dirección IP local de su PC:
+  ```
+  config.addAllowedOrigin("http://<TU_IP_LOCAL>:8100");
+  ```
+- En el Frontend: Se debe actualizar la variable de entorno para apuntar a la IP del servidor en lugar de localhost en taskboard-app\src\environments\environment.ts
+  ```
+  export const environment = {
+    production: false,
+    apiUrl: '<TU_IP_LOCAL>:8081',
+  };
+  ```
 ## Ejecución del Proyecto
 
 Ejecutar en entorno local navegador
