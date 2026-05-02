@@ -29,18 +29,28 @@ Se recomienda utilizar versiones iguales o superiores, asegurando compatibilidad
 - Android SDK (API 36)
 - Gradle: 9.4.1 
 
-## Instalación
+## Instalación del repositorio
 Instalación de herramientas globales:
-- npm install -g @ionic/cli cordova
+```bash
+npm install -g @ionic/cli cordova
+```
 
-Clonar repositorio
+Clonar el repositorio desde GitHub:
+```bash
+git clone https://github.com/tu-usuario/taskboard-app.git
+```
+
+Ingresar al directorio del proyecto:
+```bash
+cd taskboard-app
+```
 
 La rama `main` contiene la versión final y estable de la aplicación.
-- git clone https://github.com/mimuriel/taskboard-app.git
-- cd taskboard-app
 
 Instalar dependencias
-- npm install
+```bash
+npm install
+```
 
 ## Configuración de Firebase
 El proyecto utiliza Firebase Remote Config para controlar dinámicamente funcionalidades.
@@ -93,7 +103,7 @@ Para que la aplicación móvil pueda comunicarse con el servidor durante el desa
 Por defecto, la aplicación consume el backend en la dirección local estándar de desarrollo de Ionic:
 
   Origin permitido: 
-  ```
+ ```
   http://localhost:8100
   ```
 
@@ -105,7 +115,7 @@ Para probar la aplicación en un celular real conectado a la misma red WiFi que 
   config.addAllowedOrigin("http://<TU_IP_LOCAL>:8100");
   ```
 - En el Frontend: Se debe actualizar la variable de entorno para apuntar a la IP del servidor en lugar de localhost en taskboard-app\src\environments\environment.ts
-  ```
+  ```bash
   export const environment = {
     production: false,
     apiUrl: '<TU_IP_LOCAL>:8081',
@@ -114,22 +124,29 @@ Para probar la aplicación en un celular real conectado a la misma red WiFi que 
 ## Ejecución del Proyecto
 
 Ejecutar en entorno local navegador
-- ionic serve
-  
+```bash
+ionic serve
+ ```
 Aplicación disponible en: 
-- http://localhost:8100
+```
+http://localhost:8100
+```
 
 Prueba en Dispositivo Móvil
 
 Para probar en un dispositivo dentro de la misma red:
-- ionic serve --external
-  
+```bash
+ionic serve --external
+```
 Abrir en el navegador del dispositivo: 
-- http://<IP_LOCAL>:8100
+```
+http://<IP_LOCAL>:8100
+```
 
 ## Compilación Android (APK)
-- ionic cordova build android
-  
+```bash
+ionic cordova build android
+```
 APK generado en:
 - platforms\android\app\build\outputs\apk\debug\app-debug.apk
 
@@ -138,8 +155,10 @@ Requisitos:
 - macOS + Xcode + cuenta Apple Developer
 
 comandos
-- ionic cordova platform add ios
-- ionic cordova build ios
+```bash
+ionic cordova platform add ios
+ionic cordova build ios
+```
 
 Nota importante: La generación del archivo .ipa no se realizó debido a limitaciones del entorno (Windows). Sin embargo, el proyecto está configurado para su compilación en macOS.
 
